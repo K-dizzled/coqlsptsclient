@@ -1,6 +1,6 @@
 {
   "name": "coqlsp-client",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Coq language server protocol client implementation",
   "repository": {
     "type": "git",
