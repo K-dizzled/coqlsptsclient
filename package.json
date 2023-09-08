@@ -1,22 +1,21 @@
 {
-  "name": "@akashrajpurohit/ts-npm-template",
-  "version": "0.0.0-development",
-  "description": "A project template to bootstrap NPM package with Typescript",
+  "name": "coqlsp-client",
+  "version": "1.0.0",
+  "description": "Coq language server protocol client implementation",
   "repository": {
     "type": "git",
-    "url": "https://github.com/AkashRajpurohit/ts-npm-template.git"
+    "url": "https://github.com/K-dizzled/coqlsptsclient.git"
   },
-  "homepage": "https://github.com/AkashRajpurohit/ts-npm-template",
-  "bugs": "https://github.com/AkashRajpurohit/ts-npm-template/issues",
+  "homepage": "https://github.com/K-dizzled/coqlsptsclient",
+  "bugs": "https://github.com/K-dizzled/coqlsptsclient/issues",
   "author": {
-    "name": "AkashRajpurohit",
-    "email": "me@akashrajpurohit.com",
-    "url": "https://akashrajpurohit.com"
+    "name": "Andrei Kozyrev",
+    "email": "kozyrev.andreiii2016@gmail.com"
   },
   "keywords": [
-    "typescript-template",
-    "npm-boilerplate",
-    "semantic-release-boilerplate"
+    "coq",
+    "language-server-protocol",
+    "lsp-client"
   ],
   "license": "MIT",
   "main": "./dist/index.js",
