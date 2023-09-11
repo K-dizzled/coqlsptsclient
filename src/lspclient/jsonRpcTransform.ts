@@ -13,14 +13,12 @@ export class JSONRPCTransform extends Transform {
         super(options);
 
         this.on('pipe', (src) => {
-            if (!this.readableEncoding) {
-                if (src instanceof Readable) {
-                    if (src.readableEncoding) {
-                      this.setEncoding(src.readableEncoding);
-                    }
-                }
-            }
-        });
+          if (!this.readableEncoding) {
+              if (src instanceof Readable) {
+                  this.setEncoding(src.readableEncoding || 'utf8');
+              }
+          }
+      });
 
         this._curChunk = Buffer.from([]);
         this._state = 'content-length';

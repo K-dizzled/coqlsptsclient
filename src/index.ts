@@ -1,10 +1,14 @@
-import { add, subtract } from './math';
 import { ProofView } from './coqlspclient/proofView';
+import * as coqlspmodels from './coqlspclient/coqLspModels';
+import * as lspmodels from './lspclient/models';
+import { ProgressBar, CliProgressBar } from './coqlspclient/progressBar';
 
-export { add, subtract, ProofView };
+export { ProofView, coqlspmodels, lspmodels, ProgressBar, CliProgressBar };
 
 export default {
-  add,
-  subtract,
-  ProofView
+  ProofView,
+  coqlspmodels,
+  lspmodels,
+  ProgressBar,
+  CliProgressBar,
 };

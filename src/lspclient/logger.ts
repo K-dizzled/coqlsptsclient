@@ -18,7 +18,8 @@ export class Logger {
             this.logger = pino({
                 name: 'ts-lsp-client',
                 level: logLevel,
-                prettyPrint: {
+                target: 'pino-pretty', // --target 'pino-pretty
+                options: {
                     levelFirst: true, // --levelFirst
                     colorize: true,
                     translateTime: true,
