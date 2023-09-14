@@ -77,26 +77,36 @@ export class ProofView {
     }
 
     @SilentExec("get_expr", true)
-    private getExpr(span: coqModels.RangedSpan): { [key: string]: any } {
+    private getExpr(span: coqModels.RangedSpan): any[] {
       return span.span === null ? null : span.span['v']['expr'];
     }
 
     @SilentExec("get_theorem_name")
-    private getTheoremName(expr: { [key: string]: any }): string {
+    private getTheoremName(expr: any[]): string {
         return expr[2][0][0][0]['v'][1];
     }
 
     @SilentExec("get_vernacexpr", true)
-    private getVernacexpr(expr: { [key: string]: any }): coqModels.Vernacexpr {
+    private getVernacexpr(expr: any[]): coqModels.Vernacexpr {
         return expr[0] as coqModels.Vernacexpr;
     }
 
     @SilentExec("get_proof_end_command", true)
-    private getProofEndCommand(expr: { [key: string]: any }): string {
+    private getProofEndCommand(expr: any[]): string {
         return expr[1][0];
     }
 
-    private checkIfExprEAdmit(expr: { [key: string]: any }): boolean {
+    @SilentExec("get_expr_graph", true) 
+    private getExprGraph(expr: any[]): coqModels.FlecheExprTree {
+        return new coqModels.FlecheExprTree(expr);
+    }
+    
+    private checkExprIdEAdmit(exprGraph: coqModels.FlecheExprTree): boolean {
+        const child = exprGraph.dfsByLabel('admit');
+        return child !== null;
+    }
+
+    private checkIfExprEAdmit(expr: any[]): boolean {
         return this.getProofEndCommand(expr) === 'Admitted';
     }
 
@@ -134,6 +144,7 @@ export class ProofView {
         const proof: coqModels.ProofStep[] = [];
         let endPos: lspModels.Range | null = null;
         let proofContainsAdmit = false;
+        let proofHoles: coqModels.ProofStep[] = [];
 
         while (!proven && index < this.ast.length) {
             const span = this.ast[index];
@@ -153,6 +164,31 @@ export class ProofView {
                     proofContainsAdmit = true;
                 }
             } else {
+                if (this.getTextInRange(span.range.start, span.range.end).includes('admit')) {
+                    if (this.checkExprIdEAdmit(this.getExprGraph(this.getExpr(span)))) {
+                        const goalInHole = await this.coqLspClient.getGoals({
+                            textDocument: { uri: this.fileUri, version: 1 }, 
+                            position: span.range.start
+                        });
+                        let proofStepFocusedGoal: coqModels.Goal | null = null;
+                        if (goalInHole.goals !== null) {
+                            if (goalInHole.goals.goals.length > 0) {
+                                proofStepFocusedGoal = goalInHole.goals.goals[0];
+                            }
+                        } else {
+                            throw new coqModels.ProofViewError("Please report an issue. admit tactic use without context.");
+                        }
+        
+                        const proofStep = new coqModels.ProofStep(
+                            this.getTextInRange(span.range.start, span.range.end),
+                            proofStepFocusedGoal,
+                            vernacType
+                        );
+        
+                        proofHoles.push(proofStep);
+                    }
+                }
+
                 const goalAns = await this.coqLspClient.getGoals({
                     textDocument: { uri: this.fileUri, version: 1 }, 
                     position: span.range.end
@@ -181,7 +217,7 @@ export class ProofView {
             throw new coqModels.ProofViewError("Invalid or incomplete proof.");
         }
 
-        const proofObj = new coqModels.TheoremProof(proof, endPos, proofContainsAdmit);
+        const proofObj = new coqModels.TheoremProof(proof, endPos, proofContainsAdmit, proofHoles);
         return proofObj;
     }
 

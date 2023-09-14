@@ -10,7 +10,7 @@ export class GoalRequest {
         public textDocument: lspModels.TextDocumentIdentifier, // TODO: Maybe need versioned
         public position: lspModels.Position,
         public pp_format: PpFormat
-    ) {}
+    ) { }
 }
 
 export class Hyp {
@@ -18,20 +18,20 @@ export class Hyp {
         public names: string[],
         public ty: string,
         public definition: string | null = null
-    ) {}
+    ) { }
 
     public static fromHypDict(hyp: { [key: string]: unknown }): Hyp {
         if (
-            !Array.isArray(hyp['names']) || 
-            typeof(hyp['names'][0]) !== 'string' || 
-            typeof(hyp['ty']) !== 'string' 
+            !Array.isArray(hyp['names']) ||
+            typeof (hyp['names'][0]) !== 'string' ||
+            typeof (hyp['ty']) !== 'string'
         ) {
             throw new Error('Invalid Hyp dictionary')
         }
         return new Hyp(
             hyp['names'],
             hyp['ty'],
-            typeof(hyp['def']) === 'string' ? hyp['def'] : null
+            typeof (hyp['def']) === 'string' ? hyp['def'] : null
         )
     }
 
@@ -44,12 +44,12 @@ export class Goal {
     constructor(
         public hyps: Hyp[],
         public ty: string
-    ) {}
+    ) { }
 
     public static fromGoalDict(goal: { [key: string]: unknown }): Goal {
         if (
-            !Array.isArray(goal['hyps']) || 
-            typeof(goal['ty']) !== 'string' 
+            !Array.isArray(goal['hyps']) ||
+            typeof (goal['ty']) !== 'string'
         ) {
             throw new Error('Invalid Goal dictionary')
         }
@@ -67,14 +67,14 @@ export class GoalConfig {
         public shelf: Goal[],
         public given_up: Goal[],
         public bullet: string | null = null
-    ) {}
+    ) { }
 
     public static fromGoalConfigDict(goalConfig: { [key: string]: unknown }): GoalConfig {
         if (
-            !Array.isArray(goalConfig['goals']) || 
-            !Array.isArray(goalConfig['stack']) || 
-            !Array.isArray(goalConfig['shelf']) || 
-            !Array.isArray(goalConfig['given_up']) 
+            !Array.isArray(goalConfig['goals']) ||
+            !Array.isArray(goalConfig['stack']) ||
+            !Array.isArray(goalConfig['shelf']) ||
+            !Array.isArray(goalConfig['given_up'])
         ) {
             throw new Error('Invalid GoalConfig dictionary')
         }
@@ -86,7 +86,7 @@ export class GoalConfig {
             ]),
             goalConfig['shelf'].map(goal => Goal.fromGoalDict(goal)),
             goalConfig['given_up'].map(goal => Goal.fromGoalDict(goal)),
-            typeof(goalConfig['bullet']) === 'string' ? goalConfig['bullet'] : null
+            typeof (goalConfig['bullet']) === 'string' ? goalConfig['bullet'] : null
         )
     }
 }
@@ -96,7 +96,7 @@ export class Message {
         public text: string,
         public level: number | null = null,
         public range: lspModels.Range | null = null
-    ) {}
+    ) { }
 }
 
 export class GoalAnswer {
@@ -107,7 +107,7 @@ export class GoalAnswer {
         public goals: GoalConfig | null = null,
         public error: string | null = null,
         public program: any | null = null // eslint-disable-line @typescript-eslint/no-explicit-any
-    ) {}
+    ) { }
 }
 
 export interface FlecheDocumentParams {
@@ -126,21 +126,88 @@ export enum Status {
 }
 
 export interface CompletionStatus {
-    status : Status;
-    range : lspModels.Range
+    status: Status;
+    range: lspModels.Range
 };
 
 type SpanInfo = any; // eslint-disable-line @typescript-eslint/no-explicit-any
 
 export interface RangedSpan {
-    range : lspModels.Range;
+    range: lspModels.Range;
     span?: SpanInfo
 };
 
 export interface FlecheDocument {
     spans: RangedSpan[];
-    completed : CompletionStatus
+    completed: CompletionStatus
 };
+
+export class FlecheExprNode {
+    public parent: FlecheExprNode | null;
+    public children: FlecheExprNode[];
+    public label: string | number | null;
+
+    constructor(parent: FlecheExprNode | null, label: string | number | null) {
+        this.parent = parent;
+        this.children = [];
+        this.label = label;
+    }
+}
+
+export class FlecheExprTree {
+    public root: FlecheExprNode;
+
+    public dfsByLabel(label: string | number): FlecheExprNode | null {
+        const stack: FlecheExprNode[] = [this.root];
+        while (stack.length > 0) {
+            const node = stack.pop()!
+            if (node.label === label) {
+                return node;
+            }
+            for (const child of node.children) {
+                stack.push(child);
+            }
+        }
+
+        return null;
+    }
+
+    public dfsListNodeLabels(): string[] {
+        const labels: string[] = [];
+        const stack: FlecheExprNode[] = [this.root];
+        while (stack.length > 0) {
+            const node = stack.pop()!
+            if (node.label !== null) {
+                labels.push(node.label.toString());
+            }
+            for (const child of node.children) {
+                stack.push(child);
+            }
+        }
+
+        return labels.reverse();
+    }
+
+    private buildTree(expr: any[], parent: FlecheExprNode): void {
+        for (const e of expr) {
+            if (typeof e === 'string' || typeof e === 'number') {
+                const node = new FlecheExprNode(parent, e);
+                parent.children.push(node);
+            } else if (Array.isArray(e)) {
+                const node = new FlecheExprNode(parent, null);
+                parent.children.push(node);
+                this.buildTree(e, node);
+            } else {
+                throw new Error('Invalid FlecheExprTree');
+            }
+        }
+    }
+
+    constructor(expr: any[]) {
+        this.root = new FlecheExprNode(null, null);
+        this.buildTree(expr, this.root);
+    }
+}
 
 export enum LspPesponseErrorCodes {
     FlescheDocumentParsingError = 1,
@@ -159,8 +226,8 @@ export class LspResponseParsingError extends Error {
 
 export function positionFromLsp(position: { [key: string]: unknown }): lspModels.Position {
     if (
-        typeof(position['line']) !== 'number' || 
-        typeof(position['character']) !== 'number' 
+        typeof (position['line']) !== 'number' ||
+        typeof (position['character']) !== 'number'
     ) {
         throw new Error('Invalid Position dictionary')
     }
@@ -178,11 +245,11 @@ export function rangeFromLsp(range: { [key: string]: unknown }): lspModels.Range
 }
 
 export function flecheDocFromLsp(ast: { [key: string]: any }): FlecheDocument {
-    
+
     if (
-        !Array.isArray(ast['completed']['status']) || 
-        ast['completed']['status'].length !== 1 || 
-        typeof(ast['completed']['status'][0]) !== 'string' 
+        !Array.isArray(ast['completed']['status']) ||
+        ast['completed']['status'].length !== 1 ||
+        typeof (ast['completed']['status'][0]) !== 'string'
     ) {
         throw new LspResponseParsingError(
             LspPesponseErrorCodes.FlescheDocumentParsingError,
@@ -317,14 +384,29 @@ export class ProofViewError extends Error {
     ) {
         super(message);
     }
-}    
+}
 
 export class ProofStep {
     constructor(
         public text: string,
         public focused_goal: Goal | null,
         public vernac_type: Vernacexpr
-    ) {}
+    ) { }
+
+    /**
+     * Takes hypothesises and the conclusion of the focused goal
+     * and makes it a theorem statement with the given name. 
+     */
+    public goalAsTheorem(theoremName: string): string {
+        if (this.focused_goal === null) {
+            throw new ProofViewError('No focused goal')
+        }
+
+        const hyps = this.focused_goal.hyps
+        const conclusion = this.focused_goal.ty
+        const statement = `Lemma ${theoremName} ${hyps.map(hyp => `(${hyp.toString()})`).join(' ')} :\n   ${conclusion}.`
+        return statement
+    }
 
     public toString(): string {
         let text = this.text
@@ -354,8 +436,9 @@ export class TheoremProof {
     constructor(
         public proof_steps: ProofStep[],
         public end_pos: lspModels.Range,
-        public is_incomplete: boolean
-    ) {}
+        public is_incomplete: boolean, 
+        public holes: ProofStep[]
+    ) { }
 
     public toString(): string {
         let text = ''
@@ -380,7 +463,7 @@ export class Theorem {
         public statement_range: lspModels.Range,
         public statement: string,
         public proof: TheoremProof | null = null
-    ) {}
+    ) { }
 
     public toString(): string {
         let text = this.statement

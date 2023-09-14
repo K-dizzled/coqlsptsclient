@@ -12,7 +12,7 @@ class WriteMemory extends Writable {
         this._buffer = '';
     }
 
-    public _write(chunk, _, next) {
+    public _write(chunk: any, _: any, next: any) { 
         this._buffer += chunk;
         next();
     }

@@ -221,4 +221,27 @@ describe('proofView', () => {
 
         proofView.exit();
     }, 30000);
+
+    it("Test retrive admit holes inside proof", async () => {
+        const filePath = path.join(__dirname, 'resources', 'test_admit_holes.v');
+        const parentDir = path.join(__dirname, 'resources');
+        const proofView = await ProofView.init(filePath, parentDir);
+
+        const holeThrAns = [
+            "Lemma aux (A : Type) (P : A -> Prop) (x : A) (H : P x) :\n   P x.",
+            "Lemma aux  :\n   0 = 0 \\/ 0 <> 0."
+        ]
+        let holeThrs: string[] = [];
+
+        const theorems = await proofView.parseFile();
+        for (const thr of theorems) {
+            if (thr.proof !== null) {
+                for (const hole of thr.proof.holes) {
+                    holeThrs.push(hole.goalAsTheorem("aux"));
+                }
+            }
+        }
+
+        expect(holeThrs).toStrictEqual(holeThrAns);
+    });
 });
