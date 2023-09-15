@@ -390,7 +390,8 @@ export class ProofStep {
     constructor(
         public text: string,
         public focused_goal: Goal | null,
-        public vernac_type: Vernacexpr
+        public vernac_type: Vernacexpr,
+        public range: lspModels.Range,
     ) { }
 
     /**

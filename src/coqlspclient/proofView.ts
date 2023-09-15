@@ -153,7 +153,8 @@ export class ProofView {
                 const proofStep = new coqModels.ProofStep(
                     this.getTextInRange(span.range.start, span.range.end),
                     null,
-                    vernacType
+                    vernacType,
+                    span.range
                 );
                 proof.push(proofStep);
                 proven = true;
@@ -182,7 +183,8 @@ export class ProofView {
                         const proofStep = new coqModels.ProofStep(
                             this.getTextInRange(span.range.start, span.range.end),
                             proofStepFocusedGoal,
-                            vernacType
+                            vernacType,
+                            span.range
                         );
         
                         proofHoles.push(proofStep);
@@ -205,7 +207,8 @@ export class ProofView {
                 const proofStep = new coqModels.ProofStep(
                     this.getTextInRange(span.range.start, span.range.end),
                     proofStepFocusedGoal,
-                    vernacType
+                    vernacType,
+                    span.range
                 );
 
                 proof.push(proofStep);
