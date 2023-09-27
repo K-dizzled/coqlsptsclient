@@ -140,7 +140,7 @@ export class CoqLspClient extends LspClient {
             }));
         }
 
-        const goalConfig = serverResponse.goals === null ? null : coqModels.GoalConfig.fromGoalConfigDict(serverResponse.goals);
+        const goalConfig = serverResponse.goals === undefined ? null : coqModels.GoalConfig.fromGoalConfigDict(serverResponse.goals);
 
         return {
             textDocument: params.textDocument,

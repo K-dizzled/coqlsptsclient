@@ -236,8 +236,13 @@ describe('CoqLspClient', () => {
     });
 
     it('Test getGoals big with dependecies', async () => {  
-        const absFilePath = "/Users/andrei/Documents/MCS_Lectures/Coq_LLM/coqpylspclient/imm/src/basic/Execution.v"
-        const absParentDir = "/Users/andrei/Documents/MCS_Lectures/Coq_LLM/coqpylspclient/imm"
+        // Define a path to imm/src/basic/Execution.v here
+        const absFilePath = undefined
+        const absParentDir = undefined
+
+        if (absFilePath === undefined || absParentDir === undefined) {
+            return;
+        }
 
         const rootDirUri = `file://${absParentDir}`;
         const fileUri = `file://${absFilePath}`;
@@ -255,11 +260,11 @@ describe('CoqLspClient', () => {
         });
 
         const positions = [
-            { line: 350, character: 2 },
-            { line: 487, character: 2 },
-            { line: 980, character: 0 },
-            { line: 1086, character: 4 },
-            { line: 1298, character: 4 },
+            { line: 345, character: 2 },
+            { line: 482, character: 2 },
+            { line: 975, character: 0 },
+            { line: 1081, character: 4 },
+            { line: 1293, character: 4 },
         ]
 
         const goalTys = [
@@ -278,7 +283,9 @@ describe('CoqLspClient', () => {
                 }, 
                 position: positions[i]
             });
-
+            if (goals.goals === null) { 
+                console.log("Error: ", i, positions[i], goalTys[i]);
+            }
             expect(goals.goals === null).toBe(false);
             assert(goals.goals !== null);
             
